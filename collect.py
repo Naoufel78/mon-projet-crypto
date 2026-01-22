@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 
 def fetch_crypto_top_10():
-    """Récupère le Top 10 des cryptos en direct."""
+    """On récupère le Top 10 des cryptos en direct."""
     url = "https://api.coingecko.com/api/v3/coins/markets"
     params = {
         'vs_currency': 'usd',
@@ -12,7 +12,7 @@ def fetch_crypto_top_10():
         'sparkline': False
     }
     try:
-        print("🌐 Connexion à CoinGecko (Top 10)...")
+        print("Connexion à CoinGecko (Top 10)...")
         response = requests.get(url, params=params)
         df = pd.DataFrame(response.json())
         colonnes = ['name', 'symbol', 'current_price', 'market_cap', 'price_change_percentage_24h']
@@ -26,7 +26,7 @@ def fetch_historical_data(crypto_id='bitcoin', days=365):
     url = f"https://api.coingecko.com/api/v3/coins/{crypto_id}/market_chart"
     params = {'vs_currency': 'usd', 'days': days, 'interval': 'daily'}
     try:
-        print(f"🌐 Récupération de l'historique pour {crypto_id}...")
+        print(f" Récupération de l'historique pour {crypto_id}...")
         response = requests.get(url, params=params)
         data = response.json()
         df = pd.DataFrame(data['prices'], columns=['timestamp', 'price'])
