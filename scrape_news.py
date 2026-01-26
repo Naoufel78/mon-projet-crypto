@@ -12,16 +12,7 @@ def analyze_crypto_news():
     analyzer = SentimentIntensityAnalyzer()
     news_data = []
 
-    for entry in feed.entries[:10]: # On prend les 10 dernières news
-        # L'IA calcule le score : de -1 (très négatif) à +1 (très positif)
-        vs = analyzer.polarity_scores(entry.title)
-        score = vs['compound']
-        
-        news_data.append({
-            'title': entry.title,
-            'date': entry.published,
-            'sentiment_score': score
-        })
+
 
     df_news = pd.DataFrame(news_data)
     
