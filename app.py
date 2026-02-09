@@ -7,6 +7,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import r2_score
+import nltk
+from nlp_analysis import get_top_keywords
+import sys
+import subprocess
+from wordcloud import WordCloud  # Nécessite pip install wordcloud
+
+# --- CONFIGURATION NLTK ---
+nltk.download('punkt')
+nltk.download('punkt_tab')
+nltk.download('stopwords') 
 
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Crypto Dashboard", layout="wide")
@@ -27,6 +37,24 @@ def load_bitcoin_history():
 def load_sentiment_data():
     engine = get_engine()
     return pd.read_sql("SELECT * FROM news_sentiment", engine)
+
+# =========================================================
+# BARRE LATÉRALE : ACTUALISATION & FILTRES
+# =========================================================
+st.sidebar.header("⚙️ Options")
+
+# BOUTON D'ACTUALISATION
+if st.sidebar.button("🔄 Actualiser les données"):
+    with st.spinner("Récupération des nouvelles données en cours (cela peut prendre quelques secondes)..."):
+        # On utilise sys.executable pour être sûr d'utiliser le python du venv
+        subprocess.run([sys.executable, "main.py"])
+        # On vide le cache pour forcer le rechargement
+        st.cache_data.clear()
+    
+    st.sidebar.success("Données mises à jour !")
+    st.rerun()
+
+st.sidebar.divider()
 
 # =========================================================
 # PARTIE 1 : LE TABLEAU DE BORD (Top 10 Cryptos)
@@ -97,7 +125,7 @@ try:
         st.dataframe(df_news[['title', 'sentiment_score']], use_container_width=True)
 
 except Exception as e:
-    st.info("Pas de données de sentiment disponibles (lancez 'main.py' pour récupérer les news).")
+    st.info("Pas de données de sentiment disponibles (cliquez sur Actualiser).")
 
 
 st.divider() # Ligne de séparation visuelle
@@ -156,3 +184,40 @@ try:
 
 except Exception as e:
     st.error(f"Erreur lors de la prédiction ML : {e}")
+
+
+# =========================================================
+# PARTIE 4 : NUAGE DE MOTS (NLP)
+# =========================================================
+st.divider()
+st.subheader("🗣️ De quoi parle le marché ? (WordCloud)")
+
+try:
+    keywords_dict = get_top_keywords()
+    
+    if keywords_dict:
+        # Création de deux colonnes pour l'affichage
+        col_wc1, col_wc2 = st.columns([2, 1])
+
+        with col_wc1:
+            st.markdown("#### Nuage de mots")
+            # Création du WordCloud
+            wc = WordCloud(width=800, height=400, background_color='white', colormap='viridis').generate_from_frequencies(keywords_dict)
+            
+            # Affichage Matplotlib
+            fig, ax = plt.subplots(figsize=(10, 5))
+            ax.imshow(wc, interpolation='bilinear')
+            ax.axis('off') # On cache les axes
+            st.pyplot(fig)
+
+        with col_wc2:
+            st.markdown("#### Top Mots-clés")
+            # Tableau simple
+            df_keywords = pd.DataFrame(list(keywords_dict.items()), columns=['Mot', 'Freq']).sort_values(by='Freq', ascending=False)
+            st.dataframe(df_keywords, hide_index=True, use_container_width=True)
+
+    else:
+        st.info("Pas assez de données pour générer le nuage de mots.")
+
+except Exception as e:
+    st.error(f"Erreur NLP/WordCloud : {e}")
