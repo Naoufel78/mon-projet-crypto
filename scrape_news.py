@@ -15,7 +15,7 @@ def analyze_crypto_news():
     # --- PARTIE QUI MANQUAIT ---
     # On boucle sur chaque article (entry) trouvé dans le flux
     # On limite à 10 ou 20 pour ne pas surcharger
-    for entry in feed.entries[:20]:
+    for entry in feed.entries[:100]:
         title = entry.title
         # L'IA analyse le titre
         scores = analyzer.polarity_scores(title)
